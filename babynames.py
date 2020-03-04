@@ -45,14 +45,30 @@ def extract_names(filename):
     with the year string followed by the name-rank strings in alphabetical order.
     ['2006', 'Aaliyah 91', Aaron 57', 'Abagail 895', ' ...]
     """
-    names = []
     # +++your code here+++
+    with open(filename, 'r') as file:
+        html = file.read()
+    year_obj = re.search(r'Popularity\sin\s(\d\d\d\d)', html)
+    assert year_obj is not None
+    year = year_obj.group(1)
+    names_dict = {}
+    tuples = re.findall(r'<td>(\d+)</td><td>(\w+)</td><td>(\w+)</td>', html)
+    for rank, boy, girl in tuples:
+        if boy not in names_dict:
+            names_dict[boy] = rank
+        if girl not in names_dict:
+            names_dict[girl] = rank
+    # Build The Final Result List
+    names = [year]
+    for name in sorted(names_dict.keys()):
+        names.append(name + ' ' + names_dict[name])
     return names
 
 
 def create_parser():
     """Create a cmd line parser object with 2 argument definitions"""
-    parser = argparse.ArgumentParser(description="Extracts and alphabetizes baby names from html.")
+    parser = argparse.ArgumentParser(
+        description="Extracts and alphabetizes baby names from html.")
     parser.add_argument(
         '--summaryfile', help='creates a summary file', action='store_true')
     # The nargs option instructs the parser to expect 1 or more filenames.
@@ -82,6 +98,12 @@ def main(args):
     # or to write the list to a summary file e.g. `baby1990.html.summary`
 
     # +++your code here+++
+    for filename in file_list:
+        name_string = '\n'.join(extract_names(filename))
+        print(name_string)
+        if create_summary:
+            with open(filename + '.summary', 'w') as output_f:
+                output_f.write(name_string)
 
 
 if __name__ == '__main__':
